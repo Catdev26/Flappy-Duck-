@@ -1,2 +1,2 @@
-# Flappy-Duck-
-Flappy Bird, but I turned it into Flappy Duck and made it in Love2D as my first game on it
+# Flappy-Duck
+It is an imported game from the famous Flappy Bird, but prosomatic, almost in the same style, and on a framework called Love2d. I will modify the project later.
