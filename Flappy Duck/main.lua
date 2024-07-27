@@ -2,6 +2,8 @@ local player = { x = 50, y = 200, width = 50, height = 50 }
 local gravity = 400
 local jumpSpeed = -200
 local velocity = 0
+local UpPipes = {}
+local DownPipes = {}
 local pipes = {}
 local pipeWidth = 50
 local pipeGap = 150
@@ -41,14 +43,15 @@ function love.update(dt)
 
         if love.keyboard.isDown('space') then
             velocity = jumpSpeed
-            frameTimer = frameTimer + dt
-            if frameTimer >= frameInterval then
-                currentFrame = currentFrame + 1
-                if currentFrame > #playerImages then
-                    currentFrame = 1
-                end
-                frameTimer = 0
+        end
+
+        frameTimer = frameTimer + dt
+        if frameTimer >= frameInterval then
+            currentFrame = currentFrame + 1
+            if currentFrame > #playerImages then
+                currentFrame = 1
             end
+            frameTimer = 0
         end
 
         pipeSpawnTimer = pipeSpawnTimer + dt
@@ -61,10 +64,24 @@ function love.update(dt)
             pipes[i].x = pipes[i].x - 100 * dt
             if pipes[i].x < -pipeWidth then
                 table.remove(pipes, i)
-                score = score + 1
+                score = score + 0.5
             end
             if checkCollision(player, pipes[i]) then
                 isGameOver = true
+            end
+        end
+
+        for i = #UpPipes, 1, -1 do
+            UpPipes[i].x = UpPipes[i].x - 100 * dt
+            if UpPipes[i].x < -pipeWidth then
+                table.remove(UpPipes, i)
+            end
+        end
+
+        for i = #DownPipes, 1, -1 do
+            DownPipes[i].x = DownPipes[i].x - 100 * dt
+            if DownPipes[i].x < -pipeWidth then
+                table.remove(DownPipes, i)
             end
         end
 
@@ -76,11 +93,16 @@ function love.update(dt)
     end
 end
 
+
 function love.draw()
     love.graphics.draw(background, 0, 0)
     love.graphics.draw(playerImages[currentFrame], player.x, player.y, 0, desiredWidth/playerImages[currentFrame]:getWidth(), desiredHeight/playerImages[currentFrame]:getHeight())
-    for _, pipe in ipairs(pipes) do
-        love.graphics.draw(pipeImage, pipe.x, pipe.y, 0, pipe.width/pipeImage:getWidth(), pipe.height/pipeImage:getHeight())
+    for _, pipe in ipairs(UpPipes) do
+
+        love.graphics.draw(pipeImage, pipe.x, pipe.y + pipe.height, 0, pipe.width/pipeImage:getWidth(), -(pipe.height/pipeImage:getHeight()))
+    end
+    for _, pipe in ipairs(DownPipes) do
+        love.graphics.draw(pipeImage, pipe.x, pipe.y , 0, pipe.width/pipeImage:getWidth(), pipe.height/pipeImage:getHeight())
     end
     love.graphics.print("Score: " .. score, 10, 10)
 
@@ -93,9 +115,11 @@ function spawnPipe()
     local topPipeHeight = love.math.random(50, 300)
     local bottomPipeY = topPipeHeight + pipeGap
     local bottomPipeHeight = 512 - bottomPipeY
-
+    table.insert(UpPipes, { x = 288, y = 0, width = pipeWidth, height = topPipeHeight })
     table.insert(pipes, { x = 288, y = 0, width = pipeWidth, height = topPipeHeight })
-    table.insert(pipes, { x = 288, y = bottomPipeY, width = pipeWidth, height = bottomPipeHeight })
+
+    table.insert(DownPipes , { x = 288, y = bottomPipeY, width = pipeWidth, height = bottomPipeHeight })
+    table.insert(pipes , { x = 288, y = bottomPipeY, width = pipeWidth, height = bottomPipeHeight })
 end
 
 function checkCollision(player, pipe)
@@ -109,6 +133,8 @@ function resetGame()
     player.y = 200
     velocity = 0
     pipes = {}
+    DownPipes = {}
+    UpPipes = {}
     pipeSpawnTimer = 0
     score = 0
     isGameOver = false
